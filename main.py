@@ -2,7 +2,7 @@ import argparse
 
 from connectfour import ConnectFourBoard, human_player, run_game
 from basicplayer import basic_player
-from implementation import quick_to_win_player, alpha_beta_player, better_evaluate, my_player
+from implementation import quick_to_win_player, alpha_beta_player, better_evaluate, my_player,alpha_beta_search
 
 if __name__ == '__main__':
     DESCRIPTION = """Main driver to play Connect Four:
@@ -45,11 +45,16 @@ if __name__ == '__main__':
                         (0, 2, 1, 2, 1, 2, 0),
                         (2, 1, 2, 1, 1, 1, 0),
                         )
-        test_board_1 = ConnectFourBoard(board_array=board_tuples,
+        test_board_1 = ConnectFourBoard(board_array=board_tuples ,
                                         current_player=1)
         test_board_2 = ConnectFourBoard(board_array=board_tuples,
                                         current_player=2)
+        actual_score = alpha_beta_search(test_board_2, 2, better_evaluate)
+
+        print actual_score[0]
+        print actual_score[1]
+        print actual_score[2]
         # better evaluate from player 1
-        print("{} => {}".format(test_board_1, better_evaluate(test_board_1)))
+        #print("{} => {}".format(test_board_1, better_evaluate(test_board_1)))
         # better evaluate from player 2
-        print("{} => {}".format(test_board_2, better_evaluate(test_board_2)))
+        #print("{} => {}".format(test_board_2, better_evaluate(test_board_2)))

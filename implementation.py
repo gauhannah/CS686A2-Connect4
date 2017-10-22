@@ -19,29 +19,29 @@ import time
 # You don't have to change how it evaluates non-winning positions.
 
 def focused_evaluate(board):
-    """
-    Given a board, return a numeric rating of how good
-    that board is for the current player.
-    A return value >= 1000 means that the current player has won;
-    a return value <= -1000 means that the current player has lost
-    """
     if board.is_game_over():
+        score = -1000
+        if board.is_tie():
+          score = 0
         # If the game has been won, we know that it must have been
         # won or ended by the previous move.
         # The previous move was made by our opponent.
         # Therefore, we can't have won, so return -1000.
         # (note that this causes a tie to be treated like a loss)
-        score = -1000
+        
     else:
-        score = board.longest_chain(board.get_current_player_id()) * 10
-        # Prefer having your pieces in the center of the board.
-        for row in range(6):
-            for col in range(7):
-                if board.get_cell(row, col) == board.get_current_player_id():
-                    score -= abs(3-col)
-                elif board.get_cell(row, col) == board.get_other_player_id():
-                    score += abs(3-col)
+        my_chains = board.chain_cells(board.get_current_player_id())
+        other_chains = board.chain_cells(board.get_other_player_id())
+        score = 0
+        for chain in my_chains:
+            if len(chain) > 1:
+                score += len(chain)
+        for chain in other_chains:
+             if len(chain) > 1:
+                score -= len(chain)
     return score
+
+    
 
     #raise NotImplementedError
 
@@ -64,7 +64,7 @@ def alpha_beta_max_value(board, depth, alpha, beta, eval_fn,
         return eval_fn(board)
     val = NEG_INFINITY
     for move, new_board in get_next_moves_fn(board):
-        val = max(val, alpha_beta_min_value(new_board, depth-1, alpha, beta,eval_fn, get_next_moves_fn, is_terminal_fn))
+        val = -1*max(val, alpha_beta_min_value(new_board, depth-1, alpha, beta,eval_fn, get_next_moves_fn, is_terminal_fn))
         if val >= beta:
             return val
         alpha = max(val, alpha)
@@ -79,7 +79,7 @@ def alpha_beta_min_value(board, depth, alpha, beta,
 
     val = INFINITY
     for move, new_board in get_next_moves_fn(board):
-        val =-1*min(val, alpha_beta_max_value(new_board, depth - 1, alpha, beta, eval_fn, get_next_moves_fn, is_terminal_fn))
+        val = min(val, alpha_beta_max_value(new_board, depth - 1, alpha, beta, eval_fn, get_next_moves_fn, is_terminal_fn))
         if val <= alpha:
             return val
         beta = min(beta, val)
@@ -113,26 +113,27 @@ def alpha_beta_search(board, depth,
        is a function that checks whether to statically evaluate
        a board/node (hence terminating a search branch).
     """
-    t_Start = time.clock()
     alpha = NEG_INFINITY
     beta = INFINITY
     best_val = None
     for move, new_board in get_next_moves_fn(board):
-        val = alpha_beta_min_value(new_board, depth - 1,  alpha, beta, eval_fn,
+        val = -1*alpha_beta_min_value(new_board, depth - 1,  alpha, beta, eval_fn,
                                             get_next_moves_fn, is_terminal_fn)
+        print new_board 
+        print val
+        print
         if best_val is None or val > best_val[0]:
             alpha = val
             best_val = (val, move, new_board)
-    print time.clock() - t_Start
-    return best_val[1]
-
+    #return best_val[1]
+    return best_val
 
 
 
 # Now you should be able to search twice as deep in the same amount of time.
 # (Of course, this alpha-beta-player won't work until you've defined alpha_beta_search.)
 def alpha_beta_player(board):
-    return alpha_beta_search(board, depth=8, eval_fn=focused_evaluate)
+    return alpha_beta_search(board, depth=8, eval_fn=better_evaluate)
 
 
 # This player uses progressive deepening, so it can kick your ass while
@@ -145,15 +146,77 @@ def ab_iterative_player(board):
 # By providing a different function, you should be able to beat
 # simple-evaluate (or focused-evaluate) while searching to the same depth.
 
-def better_evaluate(board):
-    raise NotImplementedError
 
-# Comment this line after you've fully implemented better_evaluate
-better_evaluate = memoize(basic_evaluate)
+#help: https://www.gamedev.net/forums/topic/644496-connect-4-evaluation-functionneed-some-guide/, https://github.com/msaveski/connect-four
+
+
+# returns what type of chain the sequence is
+# 0 = horizontal, 1 = vertical, 2 = diagonal
+def chain_type(chain):
+    link_1 = chain[0]
+    link_2 = chain[1]
+    if link_1[0] == link_2[0]:
+      return 0
+    elif link_1[1] == link_2[1]:
+      return 1
+    else:
+      return 2
+
+
+def better_evaluate(board):
+    if board.is_game_over():
+            score = -10000
+            if board.is_tie():
+              score = 0
+            if board.is_win() == board.get_current_player_id():
+              score = 10000
+    else:
+
+        my_chains = board.chain_cells(board.get_current_player_id())
+        other_chains = board.chain_cells(board.get_other_player_id())
+        score = 0
+        for chain in my_chains:
+            blocked = False 
+            for link in chain:
+                if link[0] == 0 or link[1] == 6:
+                    blocked = True 
+            if not blocked: 
+                if len(chain) > 1:
+                    cType = chain_type(chain)  
+                    if cType == 0 and board.get_cell(chain[len(chain)-1][0],chain[len(chain)-1][1]+1) <> 0:
+                        blocked = True
+                    if cType == 1 and board.get_cell(chain[len(chain)-1][0]-1,chain[len(chain)-1][1]) <> 0:
+                        blocked = True
+                    if cType == 0 and board.get_cell(chain[len(chain)-1][0]-1,chain[len(chain)-1][1]+1) <> 0:
+                      blocked = True
+            if not blocked:
+                score += len(chain)**2
+        for chain in other_chains:
+            blocked = False 
+            for link in chain:
+                if link[0] == 0 or link[1] == 6:
+                    blocked = True
+            if not blocked: 
+                if len(chain) > 1:
+                    cType = chain_type(chain)  
+                    if cType == 0 and board.get_cell(chain[len(chain)-1][0],chain[len(chain)-1][1]+1) <> 0:
+                        blocked = True
+                    if cType == 1 and board.get_cell(chain[len(chain)-1][0]-1,chain[len(chain)-1][1]) <> 0:
+                        blocked = True
+                    if cType == 0 and board.get_cell(chain[len(chain)-1][0]-1,chain[len(chain)-1][1]+1) <> 0:
+                        blocked = True
+            if not blocked:
+                score -= len(chain)**2
+    return score
+
+#Comment this line after you've fully implemented better_evaluate
+#better_evaluate = memoize(basic_evaluate)
 
 # Uncomment this line to make your better_evaluate run faster.
-# better_evaluate = memoize(better_evaluate)
+better_evaluate = memoize(better_evaluate)
 
+#memoize focused evaluate
+focused_evaluate = memoize(focused_evaluate)
 
 # A player that uses alpha-beta and better_evaluate:
 def my_player(board):
