@@ -10,17 +10,19 @@ import time
 # We may compete your agent against your classmates' agents as an experiment (not for marks).
 # Are you interested in participating if this competition? Set COMPETE=TRUE if yes.
 
-# STUDENT_ID = 12345678
-# AGENT_NAME =
-# COMPETE = False
+STUDENT_ID = 20486960
+AGENT_NAME = 'PlayingForFun'
+COMPETE = False
 
-# TODO Change this evaluation function so that it tries to win as soon as possible
-# or lose as late as possible, when it decides that one side is certain to win.
-# You don't have to change how it evaluates non-winning positions.
+
+# To prefer earlier wins and later losses, I changed the utility
+# of a losing position to be a multiple of the number of blank spaces
+# on the board. A loss later in the game will result in a smaller penalty 
+# than one that occurs earlier
 
 def focused_evaluate(board):
     if board.is_game_over():
-        score = (42 - board.num_tokens_on_board()) * -1000
+        score = (42 - board.num_tokens_on_board()) * -10000
         if board.is_tie():
           score = 0
     else:
@@ -44,19 +46,19 @@ def focused_evaluate(board):
 quick_to_win_player = lambda board: minimax(board, depth=4,
                                             eval_fn=focused_evaluate)
 
-# TODO Write an alpha-beta-search procedure that acts like the minimax-search
-# procedure, but uses alpha-beta pruning to avoid searching bad ideas
-# that can't improve the result. The tester will check your pruning by
-# counting the number of static evaluations you make.
 
-#http://chessprogramming.wikispaces.com/Alpha-Beta
+
+#Used for help understanding the algorithm: http://chessprogramming.wikispaces.com/Alpha-Beta
+
+# This method calculates the  values of MAX for the alpha beta pruning algorithm. 
+# it is a helper function for the alpha_beta_search program
 def alpha_beta_max_value(board, depth, alpha, beta, eval_fn,
                       get_next_moves_fn=get_all_next_moves,
                       is_terminal_fn=is_terminal):
     if is_terminal_fn(depth, board):
         return eval_fn(board)
     for move, new_board in get_next_moves_fn(board):
-        score  = alpha_beta_min_value(new_board, depth - 1, alpha, beta, eval_fn,
+        score  = -1*alpha_beta_min_value(new_board, depth - 1, alpha, beta, eval_fn,
                                get_next_moves_fn, is_terminal_fn)
         if score >= beta:
             return beta
@@ -65,12 +67,14 @@ def alpha_beta_max_value(board, depth, alpha, beta, eval_fn,
 
     return alpha
 
+# This method calculates the  values of MIN for the alpha beta pruning algorithm. 
+# it is a helper function for the alpha_beta_search program
 def alpha_beta_min_value(board, depth, alpha, beta,
                       eval_fn,
                       get_next_moves_fn=get_all_next_moves,
                       is_terminal_fn=is_terminal):
     if is_terminal_fn(depth, board):
-        return -1*eval_fn(board)
+        return eval_fn(board)
     for move, new_board in get_next_moves_fn(board):
         score  = alpha_beta_min_value(new_board, depth - 1, alpha, beta, eval_fn,
                                get_next_moves_fn, is_terminal_fn)
@@ -89,6 +93,8 @@ def alpha_beta_min_value(board, depth, alpha, beta,
 # next board configurations, and is_terminal_fn when
 # checking game termination.
 # The default functions for get_next_moves_fn and is_terminal_fn set here will work for connect_four.
+
+# This method is the entry point for the alpha beta search algorithm.
 def alpha_beta_search(board, depth,
                       eval_fn,
                       get_next_moves_fn=get_all_next_moves,
@@ -145,25 +151,19 @@ def better_evaluate(board):
         if board.is_tie():
           score = 0
     else:
-        #score = board.longest_chain(board.get_current_player_id()) * 10
-        # Prefer having your pieces in the center of the board.
         score = 0
-        for row in range(6):
-            for col in range(7):
-                if board.get_cell(row, col) == board.get_current_player_id():
-                    score -= abs(3-col)
-                    score += row
-                elif board.get_cell(row, col) == board.get_other_player_id():
-                    score += abs(3-col)
-                    score -= row
         my_chains = board.chain_cells(board.get_current_player_id())
         other_chains = board.chain_cells(board.get_other_player_id())
         for chain in my_chains:
-            if len(chain) > 1:
+            if len(chain)== 3:
+              score += len(chain)**3
+            if len(chain)== 2:
               score += len(chain)**2
         for chain in other_chains:
-            if len(chain) > 1:
-              score += len(chain)**2
+            if len(chain) == 3:
+              score -= len(chain)**9
+            if len(chain) == 2:
+              score -= len(chain)**3
     return score
 
 #Comment this line after you've fully implemented better_evaluate
