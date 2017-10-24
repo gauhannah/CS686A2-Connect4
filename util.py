@@ -57,7 +57,7 @@ class ContinuousThread(Thread):
             return random.randint(0, 6)
 
 
-def run_search_function(board, search_fn, eval_fn, timeout=5):
+def run_search_function(board, search_fn, eval_fn, timeout=60):
     """
     Run the specified search function "search_fn" to increasing depths
     until "time" has expired; then return the most recent available return value

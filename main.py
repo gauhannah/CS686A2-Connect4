@@ -57,7 +57,7 @@ if __name__ == '__main__':
                                         current_player=1)
         test_board_2 = ConnectFourBoard(board_array=board_tuples,
                                         current_player=2)
-        actual_score = minimax(test_board_1, 2, better_evaluate)
+        actual_score = alpha_beta_search(test_board_1, 8, better_evaluate)
 
         print actual_score
         # better evaluate from player 1

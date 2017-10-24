@@ -79,17 +79,15 @@ def minimax(board, depth, eval_fn=basic_evaluate,
 
     Returns an integer, the column number of the column that the search determines you should add a token to
     """
-    t_Start = time.time()
     best_val = None
     for move, new_board in get_next_moves_fn(board):
         val = -1 * minimax_find_board_value(new_board, depth-1, eval_fn,
                                             get_next_moves_fn,
                                             is_terminal_fn)
         if best_val is None or val > best_val[0]:
-            best_val = (val, move, new_board)            
+            best_val = (val, move, new_board) 
     if verbose:
         print("MINIMAX: Decided on column {} with rating {}".format(best_val[1], best_val[0]))   
-    print  time.time() - t_Start
     return best_val[1]
 
 

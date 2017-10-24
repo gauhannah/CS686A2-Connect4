@@ -74,7 +74,7 @@ def alpha_beta_min_value(board, depth, alpha, beta,
     if is_terminal_fn(depth, board):
         return eval_fn(board)
     for move, new_board in get_next_moves_fn(board):
-        score  = -1*alpha_beta_min_value(new_board, depth - 1, alpha, beta, eval_fn,
+        score  = -1*alpha_beta_max_value(new_board, depth - 1, alpha, beta, eval_fn,
                                get_next_moves_fn, is_terminal_fn)
         if score < beta:
             beta = score
@@ -121,9 +121,8 @@ def alpha_beta_search(board, depth,
                                             get_next_moves_fn, is_terminal_fn)
         if best_val is None or score > alpha:
             alpha = score
-            best_val = (score, move, new_board)
+            best_val = (alpha, move, new_board)
     return best_val[1]
-    #return best_val
 
 
 
@@ -136,7 +135,7 @@ def alpha_beta_player(board):
 # This player uses progressive deepening, so it can kick your ass while
 # making efficient use of time:
 def ab_iterative_player(board):
-    return run_search_function(board, search_fn=alpha_beta_search, eval_fn=focused_evaluate, timeout=5)
+    return run_search_function(board, search_fn=alpha_beta_search, eval_fn=focused_evaluate, timeout=60)
 
 
 # TODO Finally, come up with a better evaluation function than focused-evaluate.
@@ -183,6 +182,6 @@ focused_evaluate = memoize(focused_evaluate)
 
 # A player that uses alpha-beta and better_evaluate:
 def my_player(board):
-    return run_search_function(board, search_fn=minimax, eval_fn=better_evaluate, timeout=5)
+    return run_search_function(board, search_fn=alpha_beta_search, eval_fn=better_evaluate, timeout=5)
 
 # my_player = lambda board: alpha_beta_search(board, depth=4, eval_fn=better_evaluate)
