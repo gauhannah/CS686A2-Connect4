@@ -48,8 +48,7 @@ quick_to_win_player = lambda board: minimax(board, depth=4,
 
 
 
-#Used for help understanding the algorithm: http://chessprogramming.wikispaces.com/Alpha-Beta
-
+#Used for help understanding the algorithm: https://www.cs.swarthmore.edu/~meeden/cs63/f07/minimax.html
 # This method calculates the  values of MAX for the alpha beta pruning algorithm. 
 # it is a helper function for the alpha_beta_search program
 def alpha_beta_max_value(board, depth, alpha, beta, eval_fn,
@@ -60,11 +59,10 @@ def alpha_beta_max_value(board, depth, alpha, beta, eval_fn,
     for move, new_board in get_next_moves_fn(board):
         score  = -1*alpha_beta_min_value(new_board, depth - 1, alpha, beta, eval_fn,
                                get_next_moves_fn, is_terminal_fn)
-        if score >= beta:
-            return beta
         if score > alpha:
             alpha = score
-
+        if alpha >= beta:
+            return alpha
     return alpha
 
 # This method calculates the  values of MIN for the alpha beta pruning algorithm. 
@@ -76,12 +74,12 @@ def alpha_beta_min_value(board, depth, alpha, beta,
     if is_terminal_fn(depth, board):
         return eval_fn(board)
     for move, new_board in get_next_moves_fn(board):
-        score  = alpha_beta_min_value(new_board, depth - 1, alpha, beta, eval_fn,
+        score  = -1*alpha_beta_min_value(new_board, depth - 1, alpha, beta, eval_fn,
                                get_next_moves_fn, is_terminal_fn)
-        if score <= alpha:
-            return alpha
         if score < beta:
             beta = score
+        if beta <= alpha:
+            return beta
     return beta
 
 
@@ -101,7 +99,6 @@ def alpha_beta_search(board, depth,
                       is_terminal_fn=is_terminal):
     """
      board is the current tree node.
-
      depth is the search depth.  If you specify depth as a very large number then your search will end at the leaves of trees.
      
      def eval_fn(board):
@@ -120,11 +117,11 @@ def alpha_beta_search(board, depth,
     beta = INFINITY
     best_val = None
     for move, new_board in get_next_moves_fn(board):
-        val = alpha_beta_min_value(new_board, depth - 1,  alpha, beta, eval_fn,
+        score = -1*alpha_beta_min_value(new_board, depth - 1,  alpha, beta, eval_fn,
                                             get_next_moves_fn, is_terminal_fn)
-        if best_val is None or val > alpha:
-            alpha = val
-            best_val = (val, move, new_board)
+        if best_val is None or score > alpha:
+            alpha = score
+            best_val = (score, move, new_board)
     return best_val[1]
     #return best_val
 
@@ -152,6 +149,15 @@ def better_evaluate(board):
           score = 0
     else:
         score = 0
+        if board.num_tokens_on_board() % 2 == 1:
+          score = board.longest_chain(board.get_current_player_id()) * 10
+          # Prefer having your pieces in the center of the board.
+          for row in range(6):
+              for col in range(7):
+                  if board.get_cell(row, col) == board.get_current_player_id():
+                      score -= abs(3-col)**2
+                  elif board.get_cell(row, col) == board.get_other_player_id():
+                      score += abs(3-col)**2
         my_chains = board.chain_cells(board.get_current_player_id())
         other_chains = board.chain_cells(board.get_other_player_id())
         for chain in my_chains:
@@ -177,6 +183,6 @@ focused_evaluate = memoize(focused_evaluate)
 
 # A player that uses alpha-beta and better_evaluate:
 def my_player(board):
-    return run_search_function(board, search_fn=alpha_beta_search, eval_fn=better_evaluate, timeout=5)
+    return run_search_function(board, search_fn=minimax, eval_fn=better_evaluate, timeout=5)
 
 # my_player = lambda board: alpha_beta_search(board, depth=4, eval_fn=better_evaluate)

@@ -1,7 +1,7 @@
 import argparse
 
 from connectfour import ConnectFourBoard, human_player, run_game
-from basicplayer import basic_player
+from basicplayer import basic_player, minimax
 from implementation import quick_to_win_player, alpha_beta_player, better_evaluate, my_player,alpha_beta_search
 
 if __name__ == '__main__':
@@ -36,7 +36,7 @@ if __name__ == '__main__':
         # watch your player play a game
         run_game(my_player, my_player)
     elif args.mode == 'my_player_vs_basic':
-        run_game(basic_player, my_player )
+        run_game(my_player, basic_player)
     elif args.mode == 'debug_evaluate':
         '''board_tuples = ((0, 0, 0, 0, 0, 0, 0),
                         (0, 0, 0, 0, 0, 0, 0),
@@ -48,16 +48,16 @@ if __name__ == '__main__':
 
         board_tuples = ((0, 0, 0, 0, 0, 0, 0),
                         (0, 0, 0, 0, 0, 0, 0),
-                        (0, 0, 0, 0, 0, 0, 0),
-                        (0, 0, 2, 0, 0, 0, 0),
-                        (0, 0, 2, 1, 0, 0, 0),
-                        (1, 0, 2, 1, 0, 0, 0),
+                        (2, 0, 0, 0, 0, 0, 0),
+                        (1, 2, 0, 0, 0, 0, 0),
+                        (1, 1, 0, 0, 0, 0, 0),
+                        (1, 1, 2, 2, 2, 0, 0),
                         )
         test_board_1 = ConnectFourBoard(board_array=board_tuples ,
                                         current_player=1)
         test_board_2 = ConnectFourBoard(board_array=board_tuples,
                                         current_player=2)
-        actual_score = alpha_beta_search(test_board_1, 2, better_evaluate)
+        actual_score = minimax(test_board_1, 2, better_evaluate)
 
         print actual_score
         # better evaluate from player 1
