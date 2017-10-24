@@ -29,7 +29,7 @@ if __name__ == '__main__':
     elif args.mode == 'computer':
         run_game(basic_player, basic_player)
     elif args.mode == 'quick':
-        run_game(basic_player, quick_to_win_player)
+        run_game(quick_to_win_player,basic_player)
     elif args.mode == 'alphabeta':
         run_game(human_player, alpha_beta_player)
     elif args.mode == 'my_player':
@@ -38,22 +38,28 @@ if __name__ == '__main__':
     elif args.mode == 'my_player_vs_basic':
         run_game(my_player, basic_player)
     elif args.mode == 'debug_evaluate':
-        board_tuples = ((0, 0, 0, 0, 0, 0, 0),
+        '''board_tuples = ((0, 0, 0, 0, 0, 0, 0),
                         (0, 0, 0, 0, 0, 0, 0),
                         (0, 0, 0, 0, 0, 0, 0),
                         (0, 2, 2, 1, 1, 2, 0),
                         (0, 2, 1, 2, 1, 2, 0),
                         (2, 1, 2, 1, 1, 1, 0),
+                        )'''
+
+        board_tuples = ((0, 0, 0, 0, 0, 0, 0),
+                        (0, 0, 0, 0, 0, 0, 0),
+                        (0, 0, 0, 0, 0, 0, 0),
+                        (0, 0, 2, 0, 0, 0, 0),
+                        (0, 0, 2, 0, 1, 0, 0),
+                        (1, 1, 2, 0, 1, 0, 0),
                         )
         test_board_1 = ConnectFourBoard(board_array=board_tuples ,
                                         current_player=1)
         test_board_2 = ConnectFourBoard(board_array=board_tuples,
                                         current_player=2)
-        actual_score = alpha_beta_search(test_board_2, 2, better_evaluate)
+        actual_score = alpha_beta_search(test_board_1, 8, better_evaluate)
 
-        print actual_score[0]
-        print actual_score[1]
-        print actual_score[2]
+        print actual_score
         # better evaluate from player 1
         #print("{} => {}".format(test_board_1, better_evaluate(test_board_1)))
         # better evaluate from player 2
